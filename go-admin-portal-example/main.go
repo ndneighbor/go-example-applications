@@ -9,7 +9,6 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/joho/godotenv"
 	"github.com/workos/workos-go/v2/pkg/organizations"
 	"github.com/workos/workos-go/v2/pkg/portal"
 )
@@ -39,7 +38,7 @@ func ProvisionEnterprise(w http.ResponseWriter, r *http.Request) {
 func HandlePortal(w http.ResponseWriter, r *http.Request) {
 	organizationId := r.URL.Query().Get("id")
 	intent := r.URL.Query().Get("intent")
-	
+
 	var linkIntent portal.GenerateLinkIntent
 	switch intent {
 	case "SSO":
@@ -55,10 +54,10 @@ func HandlePortal(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid intent", http.StatusBadRequest)
 		return
 	}
-	
+
 	link, err := portal.GenerateLink(context.Background(), portal.GenerateLinkOpts{
 		Organization: organizationId,
-		Intent:     linkIntent,
+		Intent:       linkIntent,
 	})
 	if err != nil {
 		log.Printf("get redirect failed: %s", err)
@@ -66,13 +65,7 @@ func HandlePortal(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, link, http.StatusFound)
 }
 
-
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	var conf struct {
 		Addr    string
 		Domains string
@@ -90,7 +83,6 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("/provision-enterprise", ProvisionEnterprise)
 	http.HandleFunc("/admin-portal", HandlePortal)
-
 
 	if err := http.ListenAndServe(conf.Addr, nil); err != nil {
 		log.Panic(err)
